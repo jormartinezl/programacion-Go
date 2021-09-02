@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"runtime"
 	"sync"
+	"sync/atomic"
 )
 
 //para compilar es con el siguiente comando  para validar si hay
@@ -11,22 +11,18 @@ import (
 func main() {
 	var wg sync.WaitGroup
 
-	incremento := 0
+	var incremento int64
 	gs := 100
 
-	wg.Add(gs)
+	wg.Add(gs) //se declaran los gorutines
 
 	for i := 0; i < gs; i++ {
 		go func() {
-			v := incremento
-			//se sede el proceso
-			runtime.Gosched()
-			v++
-			incremento = v
-			fmt.Println(incremento)
-			wg.Done()
+			atomic.AddInt64(&incremento, 1)
+			fmt.Println(atomic.LoadInt64(&incremento))
+			wg.Done() //se acaba la gorutine
 		}()
 	}
-	wg.Wait()
+	wg.Wait() //le decimos al programa que espere a que acaben las goroutines
 	fmt.Println("el valor final del incremeto es ", incremento)
 }
